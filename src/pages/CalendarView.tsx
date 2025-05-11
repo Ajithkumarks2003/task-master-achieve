@@ -15,7 +15,7 @@ import { CheckSquare, Edit, Trash2 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import TaskCard from "@/components/tasks/TaskCard";
-import { DayContentProps } from "react-day-picker";
+import { DayProps } from "react-day-picker";
 
 type TasksByDate = {
   [date: string]: Task[];
@@ -52,33 +52,34 @@ const CalendarView = () => {
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
   
   // Custom calendar cell renderer
-  const renderDay = (props: DayContentProps) => {
-    const date = props.date;
-    if (!date) return props.children;
-    
-    const dateKey = format(date, "yyyy-MM-dd");
-    const tasksOnDay = tasksByDate[dateKey] || [];
-    const hasTasks = tasksOnDay.length > 0;
-    const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
-    
-    return (
-      <div 
-        {...props} 
-        className={`${props.className} relative ${hasTasks ? 'font-semibold' : ''}`}
-      >
-        {props.children}
-        {hasTasks && (
-          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
-            <div 
-              className={`w-1.5 h-1.5 rounded-full ${hasUncompletedTasks ? 'bg-blue-500' : 'bg-green-500'}`}
-            ></div>
-            {tasksOnDay.length > 1 && (
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-            )}
-          </div>
-        )}
-      </div>
-    );
+  const renderDay = (day: React.ComponentProps<typeof Calendar>["components"]["Day"]) => {
+    return (props: DayProps) => {
+      const date = props.date;
+      if (!date) return <div>{props.children}</div>;
+      
+      const dateKey = format(date, "yyyy-MM-dd");
+      const tasksOnDay = tasksByDate[dateKey] || [];
+      const hasTasks = tasksOnDay.length > 0;
+      const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
+      
+      return (
+        <div 
+          className={`${props.className} relative ${hasTasks ? 'font-semibold' : ''}`}
+        >
+          {props.children}
+          {hasTasks && (
+            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+              <div 
+                className={`w-1.5 h-1.5 rounded-full ${hasUncompletedTasks ? 'bg-blue-500' : 'bg-green-500'}`}
+              ></div>
+              {tasksOnDay.length > 1 && (
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
   };
   
   return (
@@ -99,7 +100,7 @@ const CalendarView = () => {
               onSelect={setSelectedDate}
               className="rounded-md border w-full"
               components={{
-                Day: ({ date, ...props }) => renderDay({ date, ...props } as DayContentProps)
+                Day: renderDay
               }}
             />
             
@@ -150,9 +151,9 @@ const CalendarView = () => {
                   <TaskCard
                     key={task.id}
                     task={task}
-                    onComplete={completeTask}
+                    onComplete={() => completeTask(task.id)}
                     onEdit={() => navigate(`/tasks?edit=${task.id}`)}
-                    onDelete={deleteTask}
+                    onDelete={() => deleteTask(task.id)}
                   />
                 ))}
               </div>

@@ -22,9 +22,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+      
+      {/* Sidebar component */}
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <div className="flex-1 flex flex-col min-h-screen">
+      {/* Main content area with left padding on desktop to prevent overlap */}
+      <div className="flex-1 flex flex-col min-h-screen md:ml-64">
         <header className="h-16 border-b px-4 flex items-center justify-between bg-white dark:bg-gray-900 shadow-sm">
           <div className="flex items-center">
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden">
