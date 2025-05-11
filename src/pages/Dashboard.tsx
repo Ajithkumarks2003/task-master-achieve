@@ -28,9 +28,13 @@ const Dashboard = () => {
   const levelProgress = getLevelProgress();
   
   const todaysDueDate = new Date().toISOString().split('T')[0];
-  const dueTodayTasks = pendingTasks.filter(task => 
-    task.dueDate && task.dueDate.startsWith(todaysDueDate)
-  );
+  const dueTodayTasks = pendingTasks.filter(task => {
+    // Check that dueDate exists and is a string before using string methods
+    if (task.dueDate && typeof task.dueDate === 'string') {
+      return task.dueDate.split('T')[0] === todaysDueDate;
+    }
+    return false;
+  });
   
   return (
     <MainLayout>

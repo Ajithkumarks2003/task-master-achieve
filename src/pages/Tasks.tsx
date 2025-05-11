@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
@@ -180,9 +179,9 @@ const Tasks = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onComplete={completeTask}
-                  onEdit={handleEditTask}
-                  onDelete={handleDeleteRequest}
+                  onComplete={() => completeTask(task.id)}
+                  onEdit={() => handleEditTask(task)}
+                  onDelete={() => handleDeleteRequest(task)}
                 />
               ))}
             </div>
@@ -219,9 +218,9 @@ const Tasks = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onComplete={completeTask}
-                  onEdit={handleEditTask}
-                  onDelete={handleDeleteRequest}
+                  onComplete={() => completeTask(task.id)}
+                  onEdit={() => handleEditTask(task)}
+                  onDelete={() => handleDeleteRequest(task)}
                 />
               ))}
             </div>

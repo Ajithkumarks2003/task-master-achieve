@@ -16,6 +16,7 @@ import { format, isSameDay } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import TaskCard from "@/components/tasks/TaskCard";
 import { DayProps } from "react-day-picker";
+import type * as React from 'react';
 
 type TasksByDate = {
   [date: string]: Task[];
@@ -51,35 +52,31 @@ const CalendarView = () => {
   
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
   
-  // Custom calendar cell renderer
-  const renderDay = (day: React.ComponentProps<typeof Calendar>["components"]["Day"]) => {
-    return (props: DayProps) => {
-      const date = props.date;
-      if (!date) return <div>{props.children}</div>;
-      
-      const dateKey = format(date, "yyyy-MM-dd");
-      const tasksOnDay = tasksByDate[dateKey] || [];
-      const hasTasks = tasksOnDay.length > 0;
-      const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
-      
-      return (
-        <div 
-          className={`${props.className} relative ${hasTasks ? 'font-semibold' : ''}`}
-        >
-          {props.children}
-          {hasTasks && (
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
-              <div 
-                className={`w-1.5 h-1.5 rounded-full ${hasUncompletedTasks ? 'bg-blue-500' : 'bg-green-500'}`}
-              ></div>
-              {tasksOnDay.length > 1 && (
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    };
+  // Custom day renderer
+  const renderDay = (day: DayProps) => {
+    const date = day.date;
+    if (!date) return <div>{day.displayText || ""}</div>;
+    
+    const dateKey = format(date, "yyyy-MM-dd");
+    const tasksOnDay = tasksByDate[dateKey] || [];
+    const hasTasks = tasksOnDay.length > 0;
+    const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
+    
+    return (
+      <div className={`relative ${hasTasks ? 'font-semibold' : ''}`}>
+        {day.displayText || date.getDate()}
+        {hasTasks && (
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+            <div 
+              className={`w-1.5 h-1.5 rounded-full ${hasUncompletedTasks ? 'bg-blue-500' : 'bg-green-500'}`}
+            ></div>
+            {tasksOnDay.length > 1 && (
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
   
   return (
