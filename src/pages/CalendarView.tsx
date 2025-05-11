@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckSquare, Edit, Trash2 } from "lucide-react";
-import { format, isSameDay, parse } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import TaskCard from "@/components/tasks/TaskCard";
+import { DayContentProps } from "react-day-picker";
 
 type TasksByDate = {
   [date: string]: Task[];
@@ -51,8 +52,11 @@ const CalendarView = () => {
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
   
   // Custom calendar cell renderer
-  const renderDay = (day: Date, selectedDay: Date | undefined, props: any) => {
-    const dateKey = format(day, "yyyy-MM-dd");
+  const renderDay = (props: DayContentProps) => {
+    const date = props.date;
+    if (!date) return props.children;
+    
+    const dateKey = format(date, "yyyy-MM-dd");
     const tasksOnDay = tasksByDate[dateKey] || [];
     const hasTasks = tasksOnDay.length > 0;
     const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
@@ -95,7 +99,7 @@ const CalendarView = () => {
               onSelect={setSelectedDate}
               className="rounded-md border w-full"
               components={{
-                Day: ({ day, selected, ...props }) => renderDay(day, selected, props),
+                Day: ({ date, ...props }) => renderDay({ date, ...props } as DayContentProps)
               }}
             />
             

@@ -47,8 +47,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       )}
       <Progress 
         value={percentage} 
-        className={cn(sizeClasses[size])} 
-        indicatorClassName={colorClasses[color]}
+        className={cn(sizeClasses[size], {
+          "bg-primary": color === "default",
+          "bg-green-600": color === "success",
+          "bg-yellow-600": color === "warning",
+          "bg-red-600": color === "danger"
+        })} 
       />
     </div>
   );
