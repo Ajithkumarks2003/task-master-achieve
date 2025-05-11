@@ -18,9 +18,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import MainLayout from "@/components/layout/MainLayout";
-import { useTask } from "@/contexts/TaskContext";
+import { useTask, Task } from "@/contexts/TaskContext";
 import { useNavigate } from "react-router-dom";
-import TaskCard from "@/components/tasks/TaskCard";
 import { DayProps } from "react-day-picker";
 
 type TasksByDate = {
@@ -58,7 +57,7 @@ const CalendarView = () => {
   // Custom day renderer
   const renderDay = (props: DayProps) => {
     const date = props.date;
-    if (!date) return <div>{props.day}</div>;
+    if (!date) return <div>{props.children}</div>;
     
     const dateKey = format(date, "yyyy-MM-dd");
     const tasksOnDay = tasksByDate[dateKey] || [];
@@ -67,7 +66,7 @@ const CalendarView = () => {
     
     return (
       <div className={`relative ${hasTasks ? 'font-semibold' : ''}`}>
-        {props.day}
+        {props.children}
         {hasTasks && (
           <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
             <div 
@@ -104,7 +103,7 @@ const CalendarView = () => {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border"
+              className="rounded-md border pointer-events-auto"
               components={{
                 Day: renderDay
               }}
