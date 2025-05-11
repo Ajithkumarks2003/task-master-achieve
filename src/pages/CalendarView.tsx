@@ -1,22 +1,27 @@
 
-import React, { useState } from "react";
-import MainLayout from "@/components/layout/MainLayout";
-import { useTask, Task } from "@/contexts/TaskContext";
+import React, { useState, useMemo } from "react";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckSquare, Edit, Trash2 } from "lucide-react";
-import { format, isSameDay } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import MainLayout from "@/components/layout/MainLayout";
+import { useTask } from "@/contexts/TaskContext";
 import { useNavigate } from "react-router-dom";
 import TaskCard from "@/components/tasks/TaskCard";
 import { DayProps } from "react-day-picker";
-import type * as React from 'react';
 
 type TasksByDate = {
   [date: string]: Task[];
@@ -25,37 +30,35 @@ type TasksByDate = {
 const CalendarView = () => {
   const { tasks, getUserTasks, completeTask, deleteTask } = useTask();
   const navigate = useNavigate();
-  
-  const userTasks = getUserTasks();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
-  // Group tasks by date
-  const tasksByDate = userTasks.reduce((acc: TasksByDate, task) => {
-    if (!task.dueDate) return acc;
-    
-    const dateKey = task.dueDate.split('T')[0];
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(task);
-    return acc;
-  }, {});
+  const userTasks = getUserTasks();
   
-  // Get tasks for the selected date
-  const getTasksForDate = (date: Date | undefined) => {
-    if (!date) return [];
-    
-    return userTasks.filter(task => 
-      task.dueDate && isSameDay(new Date(task.dueDate), date)
-    );
+  // Group tasks by their due date
+  const tasksByDate = useMemo(() => {
+    return userTasks.reduce((acc: TasksByDate, task) => {
+      if (task.dueDate && typeof task.dueDate === 'string') {
+        const dateKey = task.dueDate.split('T')[0];
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(task);
+      }
+      return acc;
+    }, {});
+  }, [userTasks]);
+  
+  const getTasksForDate = (date: Date) => {
+    const dateKey = format(date, "yyyy-MM-dd");
+    return tasksByDate[dateKey] || [];
   };
   
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
   
   // Custom day renderer
-  const renderDay = (day: DayProps) => {
-    const date = day.date;
-    if (!date) return <div>{day.displayText || ""}</div>;
+  const renderDay = (props: DayProps) => {
+    const date = props.date;
+    if (!date) return <div>{props.day}</div>;
     
     const dateKey = format(date, "yyyy-MM-dd");
     const tasksOnDay = tasksByDate[dateKey] || [];
@@ -64,7 +67,7 @@ const CalendarView = () => {
     
     return (
       <div className={`relative ${hasTasks ? 'font-semibold' : ''}`}>
-        {day.displayText || date.getDate()}
+        {props.day}
         {hasTasks && (
           <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
             <div 
@@ -82,86 +85,104 @@ const CalendarView = () => {
   return (
     <MainLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Calendar</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Calendar View</h1>
         <p className="text-muted-foreground">
-          View your tasks scheduled over time
+          Visualize your tasks on a calendar
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1">
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Task Calendar</CardTitle>
+            <CardDescription>
+              All your tasks organized by due date
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border w-full"
+              className="rounded-md border"
               components={{
                 Day: renderDay
               }}
             />
-            
-            <div className="mt-6 space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate("/tasks")}
-              >
-                View All Tasks
-              </Button>
-              <Button 
-                className="w-full justify-start"
-                onClick={() => navigate("/tasks?create=true")}
-              >
-                Create New Task
-              </Button>
-            </div>
-            
-            <div className="mt-6">
-              <p className="text-sm font-medium mb-2">Legend:</p>
-              <div className="flex items-center mb-1">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
-                <span className="text-sm">Pending tasks</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-sm">Completed tasks</span>
-              </div>
-            </div>
           </CardContent>
         </Card>
         
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
-            <CardTitle>
-              {selectedDate ? (
-                `Tasks for ${format(selectedDate, "MMMM d, yyyy")}`
-              ) : (
-                "Select a date"
-              )}
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>
+                  {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "No Date Selected"}
+                </CardTitle>
+                <CardDescription>
+                  {selectedDateTasks.length} tasks scheduled
+                </CardDescription>
+              </div>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      onClick={() => navigate(`/tasks`)}
+                    >
+                      Add Task
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a new task for this date</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </CardHeader>
           <CardContent>
             {selectedDateTasks.length > 0 ? (
               <div className="space-y-4">
                 {selectedDateTasks.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onComplete={() => completeTask(task.id)}
-                    onEdit={() => navigate(`/tasks?edit=${task.id}`)}
-                    onDelete={() => deleteTask(task.id)}
-                  />
+                  <div key={task.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium">{task.title}</h3>
+                      <Badge variant={task.completed ? "outline" : "default"}>
+                        {task.completed ? "Completed" : "Pending"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
+                    <div className="flex justify-between">
+                      <Badge variant="outline">{task.priority}</Badge>
+                      <div className="space-x-2">
+                        {!task.completed && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => completeTask(task.id)}
+                          >
+                            Complete
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/tasks?edit=${task.id}`)}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  No tasks scheduled for this day
-                </p>
+              <div className="py-8 text-center">
+                <p className="text-muted-foreground">No tasks for this date</p>
                 <Button 
+                  onClick={() => navigate("/tasks")}
                   className="mt-4"
-                  onClick={() => navigate("/tasks?create=true")}
                 >
                   Create a task
                 </Button>

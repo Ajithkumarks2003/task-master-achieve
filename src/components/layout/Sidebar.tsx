@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       <div className="h-16 border-b border-sidebar-border px-4 flex items-center justify-between">
         <div className="flex items-center">
           <span className="font-semibold text-lg text-sidebar-foreground">
-            Task Manager
+            TaskEaze
           </span>
         </div>
         <Button

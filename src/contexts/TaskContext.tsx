@@ -182,20 +182,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error("Task is already completed");
       }
       
+      // Mark the task as completed
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === id ? { ...task, completed: true } : task
         )
       );
       
-      toast.success(`Task completed! +${taskToComplete.pointsReward} points`);
+      // Get points based on task priority
+      const earnedPoints = calculatePointsReward(taskToComplete.priority);
+      
+      toast.success(`Task completed! +${earnedPoints} points`);
       
       // Update user points (in a real app, this would be done via an API)
       if (user && taskToComplete.userId === user.id) {
         const updatedUser = {
           ...user,
-          points: user.points + taskToComplete.pointsReward,
-          level: calculateLevel(user.points + taskToComplete.pointsReward)
+          points: user.points + earnedPoints,
+          level: calculateLevel(user.points + earnedPoints)
         };
         localStorage.setItem("taskManagerUser", JSON.stringify(updatedUser));
         // Note: In a real app, we would update the user context here
@@ -228,7 +232,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     switch (priority) {
       case "high": return 50;
       case "medium": return 30;
-      case "low": return 20;
+      case "low": return 15;
       default: return 10;
     }
   };

@@ -41,7 +41,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Menu size={20} />
             </Button>
             <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 ml-2">
-              Task Manager
+              TaskEaze
             </h1>
           </div>
           
@@ -64,7 +64,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </main>
         
         <footer className="h-12 border-t px-4 flex items-center justify-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Task Manager. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} TaskEaze. All rights reserved.</p>
         </footer>
       </div>
     </div>
