@@ -20,7 +20,7 @@ import {
 import MainLayout from "@/components/layout/MainLayout";
 import { useTask, Task } from "@/contexts/TaskContext";
 import { useNavigate } from "react-router-dom";
-import { DayProps } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 
 type TasksByDate = {
   [date: string]: Task[];
@@ -54,19 +54,16 @@ const CalendarView = () => {
   
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
   
-  // Custom day renderer
-  const renderDay = (props: DayProps) => {
-    const date = props.date;
-    if (!date) return <div>{props.children}</div>;
-    
-    const dateKey = format(date, "yyyy-MM-dd");
+  // Custom day renderer that properly uses the DayPicker component types
+  const renderDay = (day: Date, modifiers: Record<string, boolean>) => {
+    const dateKey = format(day, "yyyy-MM-dd");
     const tasksOnDay = tasksByDate[dateKey] || [];
     const hasTasks = tasksOnDay.length > 0;
     const hasUncompletedTasks = tasksOnDay.some(task => !task.completed);
     
     return (
       <div className={`relative ${hasTasks ? 'font-semibold' : ''}`}>
-        {props.children}
+        <div>{day.getDate()}</div>
         {hasTasks && (
           <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
             <div 
@@ -105,7 +102,7 @@ const CalendarView = () => {
               onSelect={setSelectedDate}
               className="rounded-md border pointer-events-auto"
               components={{
-                Day: renderDay
+                Day: ({ date, ...props }) => date ? renderDay(date, props.modifiers || {}) : null
               }}
             />
           </CardContent>
